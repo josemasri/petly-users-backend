@@ -20,7 +20,7 @@ export class Pet extends BaseEntity {
   @Column() name: string;
   @Column() age: number;
   @Column() imageUrl: string;
-  @Column('text') desctiption: string;
+  @Column('text') description: string;
   @Column({ default: true }) available: boolean;
   @ManyToOne(
     () => User,

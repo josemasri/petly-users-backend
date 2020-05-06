@@ -4,24 +4,34 @@ import { ApiProperty } from '@nestjs/swagger';
 export class RegisterDto {
   @ApiProperty({
     type: String,
-    minLength: 4,
+    minLength: 2,
     maxLength: 20,
-    example: 'myuser12',
+    example: 'John',
   })
   @IsString()
-  @MinLength(4)
+  @MinLength(2)
   @MaxLength(20)
-  username: string;
+  firstName: string;
   @ApiProperty({
     type: String,
-    minLength: 4,
+    minLength: 2,
+    maxLength: 20,
+    example: 'Doe',
+  })
+  @IsString()
+  @MinLength(2)
+  @MaxLength(20)
+  lastName: string;
+  @ApiProperty({
+    type: String,
+    minLength: 2,
     maxLength: 20,
     example: 'CDMX',
   })
   @IsString()
-  @MinLength(4)
+  @MinLength(2)
   @MaxLength(20)
-  city: string;
+  state: string;
   @ApiProperty({
     type: String,
     minLength: 4,
@@ -32,6 +42,16 @@ export class RegisterDto {
   @MinLength(4)
   @MaxLength(20)
   country: string;
+  @ApiProperty({
+    type: String,
+    minLength: 4,
+    maxLength: 20,
+    example: 'Huixquilucan',
+  })
+  @IsString()
+  @MinLength(4)
+  @MaxLength(50)
+  county: string;
   @ApiProperty({
     type: String,
     example: 'test@mail.com',

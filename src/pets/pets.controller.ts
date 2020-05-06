@@ -12,6 +12,9 @@ import {
   Param,
   ParseIntPipe,
   Put,
+  Patch,
+  Query,
+  ParseBoolPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express/multer';
 
@@ -29,15 +32,19 @@ import {
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiNotFoundResponse,
+  ApiBody,
+  ApiPropertyOptional,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { AddPetDto } from './dto/add-pet.dto';
-import { imageExtensionValidation, File } from 'src/utils/utils';
+import { imageExtensionValidation, File, resizeImage } from 'src/utils/utils';
 import { v4 as uuid } from 'uuid';
 import { PetsService } from './pets.service';
 import { Pet } from './pet.entity';
 import { AuthResUnauthorizedDto } from 'src/auth/dto/auth-res.dto';
 import { InternalErrorDto } from 'src/auth/dto/internal-error.dto';
 import { GetPetsDto } from './dto/get-pets.dto';
+import { ImageUploadDto } from './dto/image-upload.dto';
 
 @Controller('pets')
 @ApiTags('Pets')
@@ -84,12 +91,18 @@ export class PetsController {
     }),
   )
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Image for your pet',
+    type: ImageUploadDto,
+  })
+  @Post('image')
   async uploadImage(@UploadedFile() file: File) {
     imageExtensionValidation(file);
+    return { url: await resizeImage(file) };
   }
 
   /**
-   * Get available pets to adopt
+   * Get available my pets
    */
   @Get('my-pets')
   @ApiConsumes(
@@ -118,6 +131,13 @@ export class PetsController {
    * Get available pets to adopt
    */
   @Get()
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    example: 10,
+    allowEmptyValue: false,
+    type: Number,
+  })
   @ApiConsumes(
     'application/x-www-form-urlencoded',
     'multipart/form-data',
@@ -135,11 +155,17 @@ export class PetsController {
     description: 'Internal server error',
     type: InternalErrorDto,
   })
-  async getAvailablePets(@GetUser() user: User): Promise<GetPetsDto> {
-    const pets = await this.petsService.getAvailablePets(user.id);
+  async getAvailablePets(
+    @GetUser() user: User,
+    @Query('page', ParseIntPipe) pageNumber: number,
+  ): Promise<GetPetsDto> {
+    const pets = await this.petsService.getAvailablePets(user.id, pageNumber);
     return { pets };
   }
 
+  /**
+   * Delete a pet
+   */
   @Delete(':id')
   @ApiOkResponse({
     description: 'Deleted succesfully',
@@ -162,9 +188,12 @@ export class PetsController {
     await this.petsService.deletePet(id, user);
   }
 
+  /**
+   * Update a pet
+   */
   @Put(':id')
   @ApiOkResponse({
-    description: 'Deleted succesfully',
+    description: 'Updated succesfully',
     type: AddPetDto,
   })
   @ApiUnauthorizedResponse({
@@ -184,5 +213,32 @@ export class PetsController {
     @GetUser() user: User,
   ) {
     await this.petsService.updatePet(id, user, addPetDto);
+  }
+
+  /**
+   * Mark as adopted
+   */
+  @Patch(':id')
+  @ApiOkResponse({
+    description: 'Updated succesfully',
+    type: AddPetDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid credentials',
+    type: AuthResUnauthorizedDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Pet not found',
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error',
+    type: InternalErrorDto,
+  })
+  async updatePetStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('status', ParseBoolPipe) status: boolean,
+    @GetUser() user: User,
+  ) {
+    await this.petsService.updatePetStatus(id, status, user);
   }
 }

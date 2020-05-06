@@ -3,11 +3,14 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 import * as morgan from 'morgan';
 import * as cors from 'cors';
+import * as config from 'config';
 
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
+  const serverConfig: any = config.get('server');
+
   process.env.TZ = 'America/Mexico_City';
   const app = await NestFactory.create(AppModule);
   app.use(morgan('dev'));
@@ -22,7 +25,10 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('api', app, document);
-  await app.listen(3000);
+
+  const port = process.env.PORT || serverConfig.port;
+
+  await app.listen(port);
   logger.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();

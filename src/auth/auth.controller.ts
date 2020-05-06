@@ -20,6 +20,7 @@ import {
   ApiHeaders,
   ApiTags,
   ApiBearerAuth,
+  ApiHeader,
 } from '@nestjs/swagger';
 import {
   AuthResSuccessDto,
@@ -44,7 +45,7 @@ export class AuthController {
     type: AuthResSuccessDto,
   })
   @ApiConflictResponse({
-    description: 'Email or username already exist',
+    description: 'Email already exist',
     type: AuthResConflictDto,
   })
   @ApiInternalServerErrorResponse({
@@ -80,6 +81,12 @@ export class AuthController {
 
   @Put('refresh')
   @HttpCode(200)
+  @ApiHeader({
+    name: 'token',
+    description: 'Bearer token',
+    example:
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+  })
   @ApiOkResponse({
     description: 'Succesfull refresh',
     type: AuthResSuccessDto,
@@ -92,7 +99,7 @@ export class AuthController {
     description: 'Internal server error',
     type: InternalErrorDto,
   })
-  async refresh(@Headers('Authorization') bearerToken: string) {
+  async refresh(@Headers('token') bearerToken: string) {
     return await this.authService.refreshToken(bearerToken);
   }
 }

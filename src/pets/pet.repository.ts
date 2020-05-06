@@ -11,13 +11,14 @@ import {
 @EntityRepository(Pet)
 export class PetRepository extends Repository<Pet> {
   async addPet(addPetDto: AddPetDto, user: User): Promise<Pet> {
-    const { animal, description, name, age } = addPetDto;
+    const { animal, description, name, age, imageUrl } = addPetDto;
     const pet = new Pet();
     pet.animal = animal;
-    pet.desctiption = description;
+    pet.description = description;
     pet.name = name;
     pet.age = Number(age);
     pet.user = user;
+    pet.imageUrl = imageUrl;
     try {
       await pet.save();
       delete pet.user;
@@ -28,10 +29,28 @@ export class PetRepository extends Repository<Pet> {
     }
   }
 
-  async getAvailablePets(userId: number): Promise<Pet[]> {
+  async getAvailablePets(userId: number, pageNumber: number): Promise<Pet[]> {
     try {
       const query = this.createQueryBuilder('pet');
+      query.select('pet.id', 'id');
+      query.addSelect('pet.animal', 'animal');
+      query.addSelect('pet.name', 'name');
+      query.addSelect('pet.age', 'age');
+      query.addSelect('pet.imageUrl', 'imageUrl');
+      query.addSelect('pet.description', 'description');
+      query.addSelect('pet.createdAt', 'createdAt');
+      query.addSelect('user.id', 'userId');
+      query.addSelect('user.firstName', 'userFirstName');
+      query.addSelect('user.lastName', 'userLastName');
+      query.addSelect('user.country', 'userCountry');
+      query.addSelect('user.state', 'userState');
+      query.addSelect('user.county', 'userCounty');
+      query.addSelect('user.createdAt', 'userCreatedAt');
       query.where('pet.userId != :userId', { userId });
+      query.andWhere('pet.available = :available', {available: true})
+      query.leftJoin('pet.user', 'user');
+      query.skip((pageNumber - 1) * 20);
+      query.limit(20);
       return await query.execute();
     } catch (error) {
       console.log(error);

@@ -19,11 +19,15 @@ export class User extends BaseEntity {
   @Column()
   email: string;
   @Column()
-  username: string;
+  firstName: string;
+  @Column()
+  lastName: string;
   @Column()
   country: string;
   @Column()
-  city: string;
+  state: string;
+  @Column()
+  county: string;
   @Column()
   password: string;
   @Column()
@@ -33,7 +37,7 @@ export class User extends BaseEntity {
   @OneToMany(
     () => Pet,
     pet => pet.user,
-    { eager: true },
+    { eager: false },
   )
   pets: Pet[];
 

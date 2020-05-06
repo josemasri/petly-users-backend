@@ -28,7 +28,7 @@ export class ChatGateway
     client.broadcast.emit('new-message', {
       from: {
         id: user.id,
-        username: user.username,
+        email: user.email,
       },
       message,
     });
@@ -62,7 +62,7 @@ export class ChatGateway
       user,
     });
     this.connectedUsers = this.connectedUsers.filter(
-      sUser => sUser.user.username != user.username,
+      sUser => sUser.user.email != user.email,
     );
     this.connectedUsers.push({ socketId: client.id, user });
     this.logger.log(`Client connected: ${client.id}`);

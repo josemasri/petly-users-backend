@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Pet } from '../pet.entity';
 
+
 export class GetPetsDto {
   /**
    * pets

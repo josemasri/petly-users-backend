@@ -39,14 +39,15 @@ export class AuthService {
 
   async refreshToken(bearerToken: string) {
     const jwt = bearerToken.split(' ')[1];
-    const decodedJwt = this.jwtService.decode(jwt);
-    const payload = { username: decodedJwt['usernme'] };
-    const newJwt = this.jwtService.sign(payload, { expiresIn: 3600 });
-    const res = await Token.update({ jwt }, { jwt: newJwt });
+
+    const email = this.jwtService.decode(jwt)['email'];
+    const user = await this.userRepository.getUserByEmail(email);
+    const accessToken = await this.createJwt(user);
+    const res = await Token.update({ jwt }, { jwt: accessToken });
     if (res.raw.affectedRows === 0) {
       throw new UnauthorizedException('Invalid Token');
     }
-    return { accessToken: newJwt, expiresIn: 3600, unit: 'seconds' };
+    return { accessToken, expiresIn: 3600, unit: 'seconds' };
   }
 
   validateToken(token: string): boolean {
@@ -63,7 +64,11 @@ export class AuthService {
     const user = new User();
     user.id = payload['id'];
     user.email = payload['email'];
-    user.username = payload['username'];
+    user.firstName = payload['firstName'];
+    user.lastName = payload['lastName'];
+    user.country = payload['country'];
+    user.state = payload['state'];
+    user.county = payload['county'];
     user.createdAt = payload['createdAt'];
     return user;
   }
@@ -75,7 +80,11 @@ export class AuthService {
     const payload: JwtPayload = {
       id: user.id,
       email: user.email,
-      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      country: user.country,
+      state: user.state,
+      county: user.county,
       createdAt: user.createdAt,
     };
     const accessToken = this.jwtService.sign(payload, { expiresIn: 3600 });
